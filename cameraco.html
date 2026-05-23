@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Camera Co — Capture. Earn. Shop.</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080808;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: rgba(255,255,255,0.09);
+    --text: #f0f0f0;
+    --muted: #555555;
+    --card: #101010;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--text); font-family:'DM Mono',monospace; min-height:100vh; overflow-x:hidden; }
+  body::before { content:''; position:fixed; inset:0; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events:none; z-index:1000; opacity:0.5; }
+
+  /* NAV */
+  nav { position:fixed; top:0; left:0; right:0; z-index:100; display:flex; align-items:center; justify-content:space-between; padding:18px 48px; background:rgba(8,8,8,0.92); backdrop-filter:blur(20px); border-bottom:1px solid var(--border); }
+  .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; letter-spacing:-0.02em; display:flex; align-items:center; gap:10px; cursor:pointer; }
+  .logo-icon { width:32px; height:32px; background:#fff; border-radius:7px; display:flex; align-items:center; justify-content:center; color:#000; font-size:0.9rem; }
+  .nav-links { display:flex; gap:28px; list-style:none; }
+  .nav-links a { color:var(--muted); text-decoration:none; font-size:0.75rem; letter-spacing:0.06em; text-transform:uppercase; transition:color 0.2s; }
+  .nav-links a:hover { color:var(--text); }
+  .nav-links a.active { color:#fff; }
+  .nav-right { display:flex; align-items:center; gap:14px; }
+  .wallet-pill { background:var(--surface2); border:1px solid var(--border); border-radius:999px; padding:7px 15px; font-size:0.76rem; display:flex; align-items:center; gap:8px; cursor:pointer; transition:border-color 0.2s; }
+  .wallet-pill:hover { border-color:rgba(255,255,255,0.25); }
+  .wallet-pill .bal { color:#fff; font-weight:500; }
+  .btn-primary { background:#fff; color:#000; font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:0.03em; border:none; border-radius:8px; padding:9px 20px; cursor:pointer; transition:transform 0.15s,opacity 0.15s; white-space:nowrap; }
+  .btn-primary:hover { transform:translateY(-1px); opacity:0.9; }
+  .btn-primary:active { transform:translateY(0); }
+  .btn-primary:disabled { opacity:0.3; cursor:not-allowed; transform:none; }
+  .btn-outline { background:transparent; color:var(--text); font-family:'Syne',sans-serif; font-weight:600; font-size:0.8rem; border:1px solid var(--border); border-radius:8px; padding:9px 20px; cursor:pointer; transition:border-color 0.2s; }
+  .btn-outline:hover { border-color:rgba(255,255,255,0.35); }
+
+  /* SECTIONS */
+  section { display:none; padding-top:88px; }
+  section.active { display:block; }
+  #home { display:none; flex-direction:column; }
+  #home.active { display:flex; }
+
+  /* HERO */
+  .hero { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:70px 48px 50px; position:relative; overflow:hidden; }
+  .hero-glow { position:absolute; width:500px; height:500px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,0.04) 0%,transparent 70%); top:50%; left:50%; transform:translate(-50%,-50%); pointer-events:none; }
+  .hero-tag { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:999px; padding:6px 16px; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.55); margin-bottom:28px; animation:fadeUp 0.6s ease both; }
+  .hero h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(2.8rem,7vw,6rem); line-height:0.95; letter-spacing:-0.04em; margin-bottom:24px; animation:fadeUp 0.6s 0.1s ease both; }
+  .hero p { color:var(--muted); font-size:0.95rem; max-width:460px; line-height:1.7; margin-bottom:40px; animation:fadeUp 0.6s 0.2s ease both; }
+  .hero-ctas { display:flex; gap:14px; animation:fadeUp 0.6s 0.3s ease both; }
+
+  .starter-banner { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px 28px; display:flex; align-items:center; gap:18px; margin:0 48px; max-width:560px; align-self:center; animation:fadeUp 0.6s 0.4s ease both; }
+  .starter-emoji { font-size:2.2rem; filter:grayscale(1); }
+  .starter-text { flex:1; text-align:left; }
+  .starter-text strong { font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem; display:block; margin-bottom:3px; }
+  .starter-text span { font-size:0.72rem; color:var(--muted); }
+  .starter-badge { background:#fff; color:#000; font-family:'Syne',sans-serif; font-weight:700; font-size:0.68rem; padding:5px 13px; border-radius:999px; letter-spacing:0.04em; white-space:nowrap; }
+
+  .stats-bar { display:flex; justify-content:center; border-top:1px solid var(--border); border-bottom:1px solid var(--border); background:var(--surface); margin-top:56px; animation:fadeUp 0.6s 0.5s ease both; }
+  .stat { flex:1; max-width:200px; padding:24px 28px; border-right:1px solid var(--border); text-align:center; }
+  .stat:last-child { border-right:none; }
+  .stat-num { font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; color:#fff; letter-spacing:-0.03em; display:block; }
+  .stat-label { font-size:0.67rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-top:4px; }
+
+  .how-section { padding:90px 48px; max-width:1100px; margin:0 auto; }
+  .section-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.15em; color:rgba(255,255,255,0.35); margin-bottom:14px; }
+  .section-title { font-family:'Syne',sans-serif; font-size:clamp(1.8rem,4vw,2.8rem); font-weight:800; letter-spacing:-0.03em; margin-bottom:52px; line-height:1.1; }
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; background:var(--border); border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+  .step { background:var(--card); padding:36px 28px; transition:background 0.2s; }
+  .step:hover { background:var(--surface2); }
+  .step-num { font-family:'Syne',sans-serif; font-size:2.6rem; font-weight:800; color:rgba(255,255,255,0.05); line-height:1; margin-bottom:18px; }
+  .step h3 { font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:700; margin-bottom:8px; }
+  .step p { color:var(--muted); font-size:0.8rem; line-height:1.7; }
+
+  .featured-section { padding:0 48px 90px; max-width:1100px; margin:0 auto; }
+  .cameras-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+
+  /* SHOP */
+  #shop { min-height:100vh; padding:108px 48px 80px; max-width:1300px; margin:0 auto; }
+  .shop-header { display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:40px; flex-wrap:wrap; gap:16px; }
+  .shop-filters { display:flex; gap:8px; flex-wrap:wrap; }
+  .filter-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); font-family:'DM Mono',monospace; font-size:0.7rem; padding:7px 14px; border-radius:999px; cursor:pointer; text-transform:uppercase; letter-spacing:0.06em; transition:all 0.2s; }
+  .filter-btn.active,.filter-btn:hover { border-color:rgba(255,255,255,0.35); color:#fff; }
+  .shop-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
+
+  /* CAMERA CARD */
+  .camera-card { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:transform 0.25s,border-color 0.25s; cursor:pointer; }
+  .camera-card:hover { transform:translateY(-4px); border-color:rgba(255,255,255,0.18); }
+  .camera-card.locked { opacity:0.6; cursor:default; }
+  .camera-card.locked:hover { transform:none; border-color:var(--border); }
+  .camera-img { width:100%; aspect-ratio:4/3; display:flex; align-items:center; justify-content:center; font-size:4.5rem; background:var(--surface2); position:relative; overflow:hidden; filter:grayscale(1); }
+  .camera-img::after { content:''; position:absolute; inset:0; background:radial-gradient(circle at 30% 30%,rgba(255,255,255,0.04),transparent 60%); }
+  .camera-badge { position:absolute; top:10px; right:10px; background:#fff; color:#000; font-size:0.6rem; font-weight:500; padding:3px 9px; border-radius:999px; letter-spacing:0.06em; text-transform:uppercase; filter:none; z-index:2; }
+  .camera-badge.starter { background:#000; color:#fff; border:1px solid rgba(255,255,255,0.3); }
+  .camera-badge.locked-badge { background:#000; color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.15); }
+  .camera-badge.mini { background:#222; color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.2); }
+  .camera-info { padding:16px 18px 20px; }
+  .camera-name { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; margin-bottom:5px; }
+  .camera-desc { color:var(--muted); font-size:0.72rem; line-height:1.6; margin-bottom:16px; }
+  .camera-footer { display:flex; align-items:center; justify-content:space-between; }
+  .camera-price { font-family:'Syne',sans-serif; font-weight:800; font-size:1.2rem; color:#fff; }
+  .camera-price span { font-size:0.65rem; font-weight:400; color:var(--muted); font-family:'DM Mono',monospace; margin-left:2px; }
+  .camera-price.free { color:rgba(255,255,255,0.45); font-size:0.95rem; }
+  .camera-price.locked-price { color:rgba(255,255,255,0.25); font-size:0.85rem; }
+  .btn-buy { background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'Syne',sans-serif; font-weight:600; font-size:0.72rem; padding:7px 14px; border-radius:7px; cursor:pointer; transition:all 0.2s; }
+  .btn-buy:hover { background:#fff; color:#000; border-color:#fff; }
+  .btn-buy.owned { background:transparent; border-color:rgba(255,255,255,0.12); color:var(--muted); cursor:default; }
+  .btn-buy.owned:hover { background:transparent; color:var(--muted); border-color:rgba(255,255,255,0.12); }
+  .btn-buy.locked-btn { background:transparent; border-color:rgba(255,255,255,0.08); color:rgba(255,255,255,0.2); cursor:not-allowed; }
+  .btn-buy.locked-btn:hover { background:transparent; color:rgba(255,255,255,0.2); border-color:rgba(255,255,255,0.08); }
+
+  /* QUESTS */
+  #quests { min-height:100vh; padding:108px 48px 80px; max-width:1000px; margin:0 auto; }
+  .quest-list { display:flex; flex-direction:column; gap:10px; margin-top:36px; }
+  .quest-card { background:var(--card); border:1px solid var(--border); border-radius:13px; padding:20px 24px; display:flex; align-items:center; gap:20px; transition:border-color 0.2s; }
+  .quest-card:hover { border-color:rgba(255,255,255,0.13); }
+  .quest-card.done-card { opacity:0.45; }
+  .quest-icon { width:46px; height:46px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; background:rgba(255,255,255,0.05); }
+  .quest-info { flex:1; }
+  .quest-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; margin-bottom:4px; }
+  .quest-desc { color:var(--muted); font-size:0.73rem; line-height:1.5; }
+  .quest-right { display:flex; flex-direction:column; align-items:flex-end; gap:7px; flex-shrink:0; }
+  .quest-reward { font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem; color:#fff; }
+  .quest-diff { font-size:0.63rem; text-transform:uppercase; letter-spacing:0.08em; padding:3px 9px; border-radius:999px; border:1px solid rgba(255,255,255,0.1); color:rgba(255,255,255,0.45); }
+  .quest-btn { background:transparent; border:1px solid rgba(255,255,255,0.13); color:var(--text); font-family:'Syne',sans-serif; font-weight:600; font-size:0.7rem; padding:6px 14px; border-radius:7px; cursor:pointer; transition:all 0.2s; }
+  .quest-btn:hover { background:#fff; border-color:#fff; color:#000; }
+  .quest-btn.done { background:rgba(255,255,255,0.05); border-color:rgba(255,255,255,0.08); color:var(--muted); cursor:default; }
+  .quest-btn.done:hover { background:rgba(255,255,255,0.05); color:var(--muted); border-color:rgba(255,255,255,0.08); }
+
+  /* WALLET */
+  #wallet { min-height:100vh; padding:108px 48px 80px; max-width:900px; margin:0 auto; }
+  .wallet-hero { background:var(--surface); border:1px solid var(--border); border-radius:22px; padding:44px; margin-bottom:28px; position:relative; overflow:hidden; }
+  .wallet-hero::before { content:''; position:absolute; top:-60px; right:-60px; width:220px; height:220px; border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,0.04),transparent 70%); }
+  .wallet-label { font-size:0.67rem; text-transform:uppercase; letter-spacing:0.15em; color:var(--muted); margin-bottom:10px; }
+  .wallet-balance { font-family:'Syne',sans-serif; font-size:clamp(2.8rem,6vw,4.5rem); font-weight:800; letter-spacing:-0.04em; color:#fff; line-height:1; margin-bottom:6px; }
+  .wallet-sub { color:var(--muted); font-size:0.78rem; }
+  .wallet-actions { display:flex; gap:12px; margin-top:28px; }
+  .wallet-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px; }
+  .wstat { background:var(--card); border:1px solid var(--border); border-radius:13px; padding:22px; }
+  .wstat-label { font-size:0.67rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:7px; }
+  .wstat-val { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; color:#fff; }
+  .owned-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; margin-top:14px; }
+  .owned-card { background:var(--card); border:1px solid var(--border); border-radius:11px; padding:18px 14px; text-align:center; }
+  .owned-card .oc-emoji { font-size:2.2rem; filter:grayscale(1); display:block; margin-bottom:8px; }
+  .owned-card .oc-name { font-family:'Syne',sans-serif; font-weight:700; font-size:0.75rem; }
+  .owned-card .oc-price { font-size:0.65rem; color:var(--muted); margin-top:3px; }
+  .tx-list { display:flex; flex-direction:column; gap:2px; }
+  .tx-item { background:var(--card); border:1px solid var(--border); border-radius:11px; padding:16px 20px; display:flex; align-items:center; gap:14px; }
+  .tx-icon { width:38px; height:38px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; background:rgba(255,255,255,0.04); }
+  .tx-info { flex:1; }
+  .tx-name { font-size:0.84rem; font-weight:500; margin-bottom:2px; }
+  .tx-date { font-size:0.67rem; color:var(--muted); }
+  .tx-amount { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; }
+  .tx-amount.earn { color:#fff; }
+  .tx-amount.spend { color:var(--muted); }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.82); backdrop-filter:blur(10px); z-index:500; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid rgba(255,255,255,0.12); border-radius:18px; padding:36px; max-width:400px; width:90%; position:relative; animation:popIn 0.22s ease; }
+  .modal-close { position:absolute; top:14px; right:14px; background:var(--surface2); border:1px solid var(--border); color:var(--muted); width:30px; height:30px; border-radius:7px; cursor:pointer; font-size:0.9rem; display:flex; align-items:center; justify-content:center; transition:color 0.2s; }
+  .modal-close:hover { color:var(--text); }
+  .modal h2 { font-family:'Syne',sans-serif; font-size:1.5rem; font-weight:800; margin-bottom:6px; }
+  .modal-camera-img { font-size:4.5rem; text-align:center; padding:22px; background:var(--surface2); border-radius:11px; margin:18px 0; filter:grayscale(1); }
+  .modal-price { font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; color:#fff; margin-bottom:6px; }
+  .modal-balance-note { font-size:0.76rem; color:var(--muted); margin-bottom:22px; }
+  .modal-balance-note strong { color:var(--text); }
+  .modal-actions { display:flex; gap:10px; }
+
+  /* SIGNUP MODAL */
+  .signup-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.87); backdrop-filter:blur(12px); z-index:600; align-items:center; justify-content:center; }
+  .signup-modal.open { display:flex; }
+  .signup-box { background:var(--surface); border:1px solid rgba(255,255,255,0.12); border-radius:22px; padding:44px; max-width:420px; width:90%; text-align:center; animation:popIn 0.28s ease; }
+  .signup-box h2 { font-family:'Syne',sans-serif; font-size:1.9rem; font-weight:800; margin-bottom:7px; }
+  .signup-box p { color:var(--muted); font-size:0.8rem; line-height:1.7; margin-bottom:26px; }
+  .starter-gift { background:var(--surface2); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:24px; display:flex; align-items:center; gap:14px; text-align:left; }
+  .starter-gift-emoji { font-size:2.6rem; filter:grayscale(1); }
+  .starter-gift-info strong { font-family:'Syne',sans-serif; font-weight:700; display:block; margin-bottom:3px; }
+  .starter-gift-info span { font-size:0.72rem; color:var(--muted); }
+  .signup-input { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); font-family:'DM Mono',monospace; font-size:0.82rem; padding:11px 15px; border-radius:9px; margin-bottom:10px; outline:none; transition:border-color 0.2s; }
+  .signup-input:focus { border-color:rgba(255,255,255,0.3); }
+  .signup-input::placeholder { color:var(--muted); }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:28px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--surface); border:1px solid rgba(255,255,255,0.14); border-radius:11px; padding:12px 22px; font-size:0.8rem; z-index:700; transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1); white-space:nowrap; color:#fff; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes popIn { from { transform:scale(0.9); opacity:0; } to { transform:scale(1); opacity:1; } }
+
+  @media(max-width:768px) {
+    nav { padding:14px 18px; }
+    .nav-links { display:none; }
+    .hero { padding:50px 18px 36px; }
+    .steps { grid-template-columns:1fr; }
+    .cameras-grid { grid-template-columns:1fr 1fr; }
+    .shop-grid { grid-template-columns:1fr; }
+    .wallet-stats { grid-template-columns:1fr; }
+    #shop,#quests,#wallet { padding:100px 18px 60px; }
+    .how-section,.featured-section { padding:50px 18px; }
+    .starter-banner { margin:0 18px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="showSection('home')">
+    <div class="logo-icon">📷</div>
+    Camera<span style="color:rgba(255,255,255,0.35)">Co</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#" class="active" onclick="showSection('home',this);return false;">Home</a></li>
+    <li><a href="#" onclick="showSection('quests',this);return false;">Quests</a></li>
+    <li><a href="#" onclick="showSection('shop',this);return false;">Shop</a></li>
+    <li><a href="#" onclick="showSection('wallet',this);return false;">Wallet</a></li>
+  </ul>
+  <div class="nav-right">
+    <div class="wallet-pill" onclick="showSection('wallet')">💰 <span class="bal" id="nav-bal">$0.00</span></div>
+    <button class="btn-primary" id="signup-btn" onclick="openSignup()">Sign Up Free</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<section id="home" class="active">
+  <div class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-tag">✦ Free to join — GTX 590 included on signup</div>
+    <h1>Earn. Save.<br>Capture.</h1>
+    <p>Complete free quests, build your balance, and climb from the GTX 590 all the way to the RTX 5090 Astral.</p>
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="openSignup()">Get Started Free</button>
+      <button class="btn-outline" onclick="showSection('shop',document.querySelectorAll('.nav-links a')[2])">View Cameras</button>
+    </div>
+  </div>
+  <div class="starter-banner">
+    <div class="starter-emoji">📷</div>
+    <div class="starter-text">
+      <strong>Free Starter Camera: GTX 590</strong>
+      <span>Every new account receives the GTX 590 — no quests required.</span>
+    </div>
+    <div class="starter-badge">FREE</div>
+  </div>
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-num">12</span><div class="stat-label">Quests</div></div>
+    <div class="stat"><span class="stat-num">22</span><div class="stat-label">Cameras</div></div>
+    <div class="stat"><span class="stat-num">$3,500</span><div class="stat-label">Top Camera</div></div>
+    <div class="stat"><span class="stat-num">Free</span><div class="stat-label">Always</div></div>
+  </div>
+  <div class="how-section">
+    <div class="section-label">// How it works</div>
+    <div class="section-title">Three steps to<br>your dream camera.</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">01</div><h3>Sign Up Free</h3><p>Create your account and instantly receive the GTX 590 starter camera. No payment ever.</p></div>
+      <div class="step"><div class="step-num">02</div><h3>Complete Quests</h3><p>Pick from easy, medium, or hard quests. Each one pays out virtual cash to your wallet.</p></div>
+      <div class="step"><div class="step-num">03</div><h3>Buy Cameras</h3><p>Climb the lineup from GTX 590 all the way to the legendary RTX 5090 Astral.</p></div>
+    </div>
+  </div>
+  <div class="featured-section">
+    <div class="section-label">// Featured cameras</div>
+    <div class="section-title">Shop highlights.</div>
+    <div class="cameras-grid" id="home-cameras"></div>
+  </div>
+</section>
+
+<!-- SHOP -->
+<section id="shop">
+  <div class="shop-header">
+    <div>
+      <div class="section-label">// Camera Shop</div>
+      <div class="section-title" style="margin-bottom:0">All Cameras</div>
+    </div>
+    <div class="shop-filters">
+      <button class="filter-btn active" onclick="filterShop('all',this)">All</button>
+      <button class="filter-btn" onclick="filterShop('gtx',this)">GTX</button>
+      <button class="filter-btn" onclick="filterShop('rtx3',this)">RTX 30</button>
+      <button class="filter-btn" onclick="filterShop('rtx4',this)">RTX 40</button>
+      <button class="filter-btn" onclick="filterShop('rtx5',this)">RTX 50</button>
+      <button class="filter-btn" onclick="filterShop('special',this)">Special</button>
+    </div>
+  </div>
+  <div class="shop-grid" id="shop-grid"></div>
+</section>
+
+<!-- QUESTS -->
+<section id="quests">
+  <div class="section-label">// Quest Board</div>
+  <div class="section-title">Earn your balance.</div>
+  <div class="quest-list" id="quest-list"></div>
+</section>
+
+<!-- WALLET -->
+<section id="wallet">
+  <div class="section-label">// Your Wallet</div>
+  <div class="section-title">Your Balance.</div>
+  <div class="wallet-hero">
+    <div class="wallet-label">Available Balance</div>
+    <div class="wallet-balance" id="wallet-bal">$0.00</div>
+    <div class="wallet-sub">Earned through quests · Spend in the shop</div>
+    <div class="wallet-actions">
+      <button class="btn-primary" onclick="showSection('quests',document.querySelectorAll('.nav-links a')[1])">Earn More</button>
+      <button class="btn-outline" onclick="showSection('shop',document.querySelectorAll('.nav-links a')[2])">Visit Shop</button>
+    </div>
+  </div>
+  <div class="wallet-stats">
+    <div class="wstat"><div class="wstat-label">Total Earned</div><div class="wstat-val" id="w-earned">$0.00</div></div>
+    <div class="wstat"><div class="wstat-label">Total Spent</div><div class="wstat-val" id="w-spent">$0.00</div></div>
+    <div class="wstat"><div class="wstat-label">Quests Done</div><div class="wstat-val" id="w-quests">0</div></div>
+  </div>
+  <div class="section-label" style="margin-bottom:14px">// Your Cameras</div>
+  <div class="owned-grid" id="owned-grid"><div style="color:var(--muted);font-size:0.78rem;padding:8px 0;grid-column:1/-1">Sign up to receive your free GTX 590!</div></div>
+  <div class="section-label" style="margin-bottom:14px;margin-top:36px">// Transaction History</div>
+  <div class="tx-list" id="tx-list"><div style="color:var(--muted);font-size:0.8rem;padding:18px 0">No transactions yet. Complete a quest to get started!</div></div>
+</section>
+
+<!-- PURCHASE MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="section-label">// Purchase</div>
+    <h2 id="modal-name"></h2>
+    <div class="modal-camera-img" id="modal-emoji"></div>
+    <div class="modal-price" id="modal-price"></div>
+    <div class="modal-balance-note">Your balance: <strong id="modal-bal"></strong></div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="modal-confirm" onclick="confirmPurchase()">Confirm Purchase</button>
+      <button class="btn-outline" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNUP MODAL -->
+<div class="signup-modal" id="signup-modal">
+  <div class="signup-box">
+    <div class="section-label" style="text-align:center;margin-bottom:7px">// Welcome to Camera Co</div>
+    <h2>Sign Up Free</h2>
+    <p>Join and instantly receive the GTX 590 starter camera — no payment needed, ever.</p>
+    <div class="starter-gift">
+      <div class="starter-gift-emoji">📷</div>
+      <div class="starter-gift-info">
+        <strong>GTX 590 — Free Starter Camera</strong>
+        <span>Added to your collection the moment you sign up.</span>
+      </div>
+    </div>
+    <input class="signup-input" id="signup-name" type="text" placeholder="Your name"/>
+    <input class="signup-input" id="signup-email" type="email" placeholder="Email address"/>
+    <button class="btn-primary" style="width:100%;padding:13px;font-size:0.88rem;margin-bottom:11px" onclick="completeSignup()">Create Account & Claim GTX 590</button>
+    <div style="font-size:0.7rem;color:var(--muted)">Already have an account? <span style="color:#fff;cursor:pointer" onclick="closeSignup()">Sign in</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// STATE
+let balance = 0, totalEarned = 0, totalSpent = 0, questsDone = 0;
+let transactions = [], ownedIds = [], signedUp = false, pendingPurchase = null;
+
+// CAMERAS
+const cameras = [
+  // GTX
+  { id:1,  name:'GTX 590',          emoji:'📷', desc:'The legendary starter. Compact, reliable, and yours free on signup.',                    price:0,    badge:'starter',     type:'gtx',     purchasable:true },
+  { id:2,  name:'GTX 1080 Ti',       emoji:'📸', desc:'The titan of its era. Upgraded optics and a wider sensor for serious enthusiasts.',      price:50,   badge:'',            type:'gtx',     purchasable:true },
+  // RTX 30
+  { id:3,  name:'RTX 3060',          emoji:'🎞️', desc:'Ray-traced captures with smooth color grading. A solid first RTX experience.',          price:150,  badge:'',            type:'rtx3',    purchasable:true },
+  { id:4,  name:'RTX 3060 Ti',       emoji:'🔭', desc:'The Ti bump — noticeably sharper autofocus and faster burst shooting.',                  price:200,  badge:'',            type:'rtx3',    purchasable:true },
+  { id:5,  name:'RTX 3060 Ti Super', emoji:'🎬', desc:'Super-charged Ti with wider aperture and AI-enhanced stabilization.',                   price:300,  badge:'',            type:'rtx3',    purchasable:true },
+  { id:6,  name:'RTX 3080',          emoji:'🌄', desc:'Flagship 30-series performance. Shoots in formats that impress professionals.',         price:390,  badge:'popular',     type:'rtx3',    purchasable:true },
+  { id:7,  name:'RTX 3080 Super',    emoji:'🎯', desc:'Super edition with extended zoom range and cinematic color science.',                    price:430,  badge:'',            type:'rtx3',    purchasable:true },
+  // RTX 40
+  { id:8,  name:'RTX 4060',          emoji:'🤳', desc:'Ada Lovelace enters the chat. Compact body, massive image quality leap.',               price:300,  badge:'',            type:'rtx4',    purchasable:true },
+  { id:9,  name:'RTX 4060 Ti',       emoji:'⚡', desc:'Ti treatment on Ada — DLSS-enhanced previews and 4K burst mode.',                       price:399,  badge:'',            type:'rtx4',    purchasable:true },
+  { id:10, name:'RTX 4070',          emoji:'🔮', desc:'The sweet spot of the 40 series. Exceptional at everything, master of all.',            price:650,  badge:'popular',     type:'rtx4',    purchasable:true },
+  { id:11, name:'RTX 4070 Ti',       emoji:'🏆', desc:'Professional-grade sensor with 8K capture capability and AI noise reduction.',          price:700,  badge:'',            type:'rtx4',    purchasable:true },
+  { id:12, name:'RTX 4070 Ti Super', emoji:'💎', desc:'The Super treatment elevates the Ti to near-flagship status. Stunning results.',        price:1200, badge:'',            type:'rtx4',    purchasable:true },
+  { id:13, name:'RTX 4080',          emoji:'🌟', desc:'Near-top-of-the-line 40 series. Shoots RAW in conditions others can\'t handle.',        price:1115, badge:'',            type:'rtx4',    purchasable:true },
+  { id:14, name:'RTX 4080 Super',    emoji:'✨', desc:'Super variant pushes the 4080 into a class of its own. Near-perfect image quality.',    price:1500, badge:'',            type:'rtx4',    purchasable:true },
+  { id:15, name:'RTX 4090',          emoji:'👑', desc:'The undisputed 40-series king. Shoots in formats that don\'t fully exist yet.',         price:2500, badge:'popular',     type:'rtx4',    purchasable:true },
+  // RTX 50
+  { id:16, name:'RTX 5060',          emoji:'🚀', desc:'Blackwell architecture debut. Incredible entry-level quality for the new generation.',  price:299,  badge:'new',         type:'rtx5',    purchasable:true },
+  { id:17, name:'RTX 5060 Ti',       emoji:'💫', desc:'Ti-tuned Blackwell with 50% faster autofocus and neural rendering previews.',          price:399,  badge:'new',         type:'rtx5',    purchasable:true },
+  { id:18, name:'RTX 5070',          emoji:'🎆', desc:'Mid-range Blackwell excellence. Rivals last gen flagships at half the price.',          price:799,  badge:'',            type:'rtx5',    purchasable:true },
+  { id:19, name:'RTX 5070 Ti',       emoji:'🌠', desc:'Ti class Blackwell — cinema-quality captures in a surprisingly portable body.',         price:1199, badge:'',            type:'rtx5',    purchasable:true },
+  { id:20, name:'RTX 5080',          emoji:'🔥', desc:'Flagship-adjacent 50 series. Near-perfect in every condition imaginable.',             price:1150, badge:'',            type:'rtx5',    purchasable:true },
+  { id:21, name:'RTX 5090 Base',     emoji:'⭐', desc:'The definitive Blackwell. Sets a new standard for what a camera can capture.',         price:3000, badge:'',            type:'rtx5',    purchasable:true },
+  { id:22, name:'RTX 5090 Astral',   emoji:'🌌', desc:'Astral edition — limited production, astronomical clarity, cosmic price tag.',         price:3500, badge:'popular',     type:'rtx5',    purchasable:true },
+  // SPECIAL
+  { id:23, name:'RTX 5090 Ultra',    emoji:'🏅', desc:'Staff-exclusive. Not available for public purchase. The pinnacle of Camera Co.',       price:0,    badge:'locked-badge', type:'special', purchasable:false },
+  { id:24, name:'Mini Camera Model 1',emoji:'📡',desc:'A perfectly engineered miniature camera. Compact beyond belief, quality beyond measure.',price:800, badge:'mini',        type:'special', purchasable:true },
+];
+
+const quests = [
+  { id:1,  title:'First Look',        desc:'Visit the shop and view any camera.',                               reward:10,   diff:'easy',   emoji:'👀', done:false },
+  { id:2,  title:'Window Shopper',    desc:'Browse all camera categories in the shop.',                         reward:25,   diff:'easy',   emoji:'🛍️', done:false },
+  { id:3,  title:'Quest Reader',      desc:'Visit the quest board and read 5 quest descriptions.',              reward:15,   diff:'easy',   emoji:'📋', done:false },
+  { id:4,  title:'Wallet Watcher',    desc:'Visit your wallet and check your stats.',                           reward:20,   diff:'easy',   emoji:'💰', done:false },
+  { id:5,  title:'First Purchase',    desc:'Buy any camera from the shop (paid).',                              reward:50,   diff:'easy',   emoji:'🛒', done:false },
+  { id:6,  title:'GTX Legacy',        desc:'Own both GTX cameras.',                                            reward:80,   diff:'medium', emoji:'🖥️', done:false },
+  { id:7,  title:'RTX 30 Fan',        desc:'Purchase any RTX 30 series camera.',                               reward:70,   diff:'medium', emoji:'🎞️', done:false },
+  { id:8,  title:'RTX 40 Enthusiast', desc:'Purchase any RTX 40 series camera.',                               reward:90,   diff:'medium', emoji:'⚡', done:false },
+  { id:9,  title:'Next Gen',          desc:'Purchase any RTX 50 series camera.',                               reward:100,  diff:'medium', emoji:'🚀', done:false },
+  { id:10, title:'High Roller',       desc:'Purchase a camera worth $1,000 or more.',                          reward:200,  diff:'hard',   emoji:'💎', done:false },
+  { id:11, title:'Triple Threat',     desc:'Complete any 3 quests.',                                           reward:120,  diff:'hard',   emoji:'🎯', done:false },
+  { id:12, title:'Collector',         desc:'Own 5 or more cameras.',                                           reward:300,  diff:'hard',   emoji:'🏆', done:false },
+];
+
+// NAV
+function showSection(id, linkEl) {
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  if (linkEl) { linkEl.classList.add('active'); }
+  else {
+    const map = {home:0,quests:1,shop:2,wallet:3};
+    const links = document.querySelectorAll('.nav-links a');
+    if (links[map[id]]) links[map[id]].classList.add('active');
+  }
+}
+
+// SIGNUP
+function openSignup() {
+  if (signedUp) { showToast('You\'re already signed up!'); return; }
+  document.getElementById('signup-modal').classList.add('open');
+}
+function closeSignup() { document.getElementById('signup-modal').classList.remove('open'); }
+function completeSignup() {
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  if (!name) { showToast('Please enter your name'); return; }
+  if (!email || !email.includes('@')) { showToast('Please enter a valid email'); return; }
+  signedUp = true;
+  ownedIds.push(1);
+  transactions.unshift({ type:'earn', name:'Welcome Gift: GTX 590 Camera', amount:0, date:today(), gift:true });
+  const btn = document.getElementById('signup-btn');
+  btn.textContent = '✓ ' + name;
+  btn.style.background = 'rgba(255,255,255,0.08)';
+  btn.style.color = '#fff';
+  btn.onclick = null;
+  closeSignup();
+  updateUI();
+  initShop();
+  showToast('🎉 Welcome! Your GTX 590 is in your wallet.');
+}
+
+// RENDER CAMERAS
+function renderCamera(cam) {
+  const owned = ownedIds.includes(cam.id);
+  const locked = !cam.purchasable;
+  let badgeHTML = '';
+  if (cam.badge === 'starter') badgeHTML = `<div class="camera-badge starter">Starter</div>`;
+  else if (cam.badge === 'locked-badge') badgeHTML = `<div class="camera-badge locked-badge">Staff Only</div>`;
+  else if (cam.badge === 'mini') badgeHTML = `<div class="camera-badge mini">Mini</div>`;
+  else if (cam.badge) badgeHTML = `<div class="camera-badge">${cam.badge}</div>`;
+
+  let priceHTML;
+  if (locked) priceHTML = `<div class="camera-price locked-price">Not for Sale</div>`;
+  else if (cam.price === 0) priceHTML = `<div class="camera-price free">FREE</div>`;
+  else priceHTML = `<div class="camera-price">$${cam.price.toLocaleString()}<span>coins</span></div>`;
+
+  let btnHTML;
+  if (locked) btnHTML = `<button class="btn-buy locked-btn">🔒 Locked</button>`;
+  else if (owned) btnHTML = `<button class="btn-buy owned">✓ Owned</button>`;
+  else btnHTML = `<button class="btn-buy" onclick="event.stopPropagation();openModal(${cam.id})">Buy</button>`;
+
+  return `<div class="camera-card${locked?' locked':''}" onclick="${locked?'showToast(\'This camera is staff-only and cannot be purchased.\')':'openModal('+cam.id+')'}">
+    <div class="camera-img">${cam.emoji}${badgeHTML}</div>
+    <div class="camera-info">
+      <div class="camera-name">${cam.name}</div>
+      <div class="camera-desc">${cam.desc}</div>
+      <div class="camera-footer">${priceHTML}${btnHTML}</div>
+    </div>
+  </div>`;
+}
+
+function initShop() {
+  document.getElementById('shop-grid').innerHTML = cameras.map(c => renderCamera(c)).join('');
+  document.getElementById('home-cameras').innerHTML = [cameras[0],cameras[5],cameras[21]].map(c => renderCamera(c)).join('');
+}
+
+function filterShop(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const filtered = type === 'all' ? cameras : cameras.filter(c => c.type === type);
+  document.getElementById('shop-grid').innerHTML = filtered.map(c => renderCamera(c)).join('');
+}
+
+// QUESTS
+function renderQuests() {
+  document.getElementById('quest-list').innerHTML = quests.map(q => `
+    <div class="quest-card${q.done?' done-card':''}">
+      <div class="quest-icon">${q.emoji}</div>
+      <div class="quest-info">
+        <div class="quest-title">${q.title}</div>
+        <div class="quest-desc">${q.desc}</div>
+      </div>
+      <div class="quest-right">
+        <div class="quest-reward">+$${q.reward}</div>
+        <div class="quest-diff">${q.diff}</div>
+        <button class="quest-btn${q.done?' done':''}" onclick="claimQuest(${q.id})">${q.done?'✓ Claimed':'Claim'}</button>
+      </div>
+    </div>`).join('');
+}
+
+function claimQuest(id) {
+  const q = quests.find(x => x.id === id);
+  if (!q || q.done) return;
+  if (!signedUp) { openSignup(); return; }
+  q.done = true;
+  balance += q.reward;
+  totalEarned += q.reward;
+  questsDone++;
+  transactions.unshift({ type:'earn', name:`Quest: ${q.title}`, amount:q.reward, date:today() });
+  checkTripleThreat();
+  updateUI();
+  renderQuests();
+  showToast(`+$${q.reward} — "${q.title}" complete!`);
+}
+
+function checkTripleThreat() {
+  if (questsDone === 3) { const q=quests.find(x=>x.id===11); if(q&&!q.done) setTimeout(()=>claimQuest(11),400); }
+}
+function checkCollector() {
+  if (ownedIds.length >= 5) { const q=quests.find(x=>x.id===12); if(q&&!q.done) setTimeout(()=>claimQuest(12),600); }
+}
+
+// MODAL
+function openModal(id) {
+  const cam = cameras.find(c => c.id === id);
+  if (!cam || !cam.purchasable) { showToast('This camera cannot be purchased.'); return; }
+  if (ownedIds.includes(id)) { showToast(`You already own the ${cam.name}!`); return; }
+  pendingPurchase = cam;
+  document.getElementById('modal-name').textContent = cam.name;
+  document.getElementById('modal-emoji').textContent = cam.emoji;
+  document.getElementById('modal-price').textContent = cam.price === 0 ? 'FREE' : `$${cam.price.toLocaleString()}`;
+  document.getElementById('modal-bal').textContent = `$${balance.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  const canAfford = balance >= cam.price;
+  const btn = document.getElementById('modal-confirm');
+  btn.disabled = !canAfford;
+  btn.style.opacity = canAfford ? '1' : '0.3';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); pendingPurchase = null; }
+function confirmPurchase() {
+  if (!pendingPurchase) return;
+  if (!signedUp) { closeModal(); openSignup(); return; }
+  if (balance < pendingPurchase.price) return;
+  balance -= pendingPurchase.price;
+  totalSpent += pendingPurchase.price;
+  ownedIds.push(pendingPurchase.id);
+  transactions.unshift({ type:'spend', name:`Purchased: ${pendingPurchase.name}`, amount:pendingPurchase.price, date:today() });
+
+  // quest triggers
+  const paidPurchases = ownedIds.filter(id=>{ const c=cameras.find(x=>x.id===id); return c&&c.price>0; });
+  if (paidPurchases.length >= 1) { const q=quests.find(x=>x.id===5); if(q&&!q.done) setTimeout(()=>claimQuest(5),300); }
+  if (pendingPurchase.type==='rtx3') { const q=quests.find(x=>x.id===7); if(q&&!q.done) setTimeout(()=>claimQuest(7),300); }
+  if (pendingPurchase.type==='rtx4') { const q=quests.find(x=>x.id===8); if(q&&!q.done) setTimeout(()=>claimQuest(8),300); }
+  if (pendingPurchase.type==='rtx5') { const q=quests.find(x=>x.id===9); if(q&&!q.done) setTimeout(()=>claimQuest(9),300); }
+  if (pendingPurchase.price>=1000) { const q=quests.find(x=>x.id===10); if(q&&!q.done) setTimeout(()=>claimQuest(10),400); }
+  checkGTXLegacy();
+  checkCollector();
+
+  const name = pendingPurchase.name;
+  closeModal();
+  updateUI();
+  initShop();
+  showToast(`📷 You now own the ${name}!`);
+}
+
+function checkGTXLegacy() {
+  const gtxIds = cameras.filter(c=>c.type==='gtx').map(c=>c.id);
+  if (gtxIds.every(id=>ownedIds.includes(id))) { const q=quests.find(x=>x.id===6); if(q&&!q.done) setTimeout(()=>claimQuest(6),500); }
+}
+
+// UI UPDATE
+function updateUI() {
+  const fmt = n => `$${n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  document.getElementById('nav-bal').textContent = fmt(balance);
+  document.getElementById('wallet-bal').textContent = fmt(balance);
+  document.getElementById('w-earned').textContent = fmt(totalEarned);
+  document.getElementById('w-spent').textContent = fmt(totalSpent);
+  document.getElementById('w-quests').textContent = questsDone;
+
+  const og = document.getElementById('owned-grid');
+  if (ownedIds.length === 0) {
+    og.innerHTML = `<div style="color:var(--muted);font-size:0.78rem;padding:8px 0;grid-column:1/-1">Sign up to receive your free GTX 590!</div>`;
+  } else {
+    og.innerHTML = ownedIds.map(id => {
+      const cam = cameras.find(c=>c.id===id);
+      return `<div class="owned-card">
+        <span class="oc-emoji">${cam.emoji}</span>
+        <div class="oc-name">${cam.name}</div>
+        <div class="oc-price">${cam.price===0?'Starter Gift':'$'+cam.price.toLocaleString()}</div>
+      </div>`;
+    }).join('');
+  }
+
+  const txList = document.getElementById('tx-list');
+  if (transactions.length === 0) {
+    txList.innerHTML = `<div style="color:var(--muted);font-size:0.8rem;padding:18px 0">No transactions yet. Complete a quest to get started!</div>`;
+  } else {
+    txList.innerHTML = transactions.map(tx => {
+      if (tx.gift) return `<div class="tx-item"><div class="tx-icon">🎁</div><div class="tx-info"><div class="tx-name">${tx.name}</div><div class="tx-date">${tx.date}</div></div><div class="tx-amount earn">FREE</div></div>`;
+      return `<div class="tx-item"><div class="tx-icon">${tx.type==='earn'?'💰':'📷'}</div><div class="tx-info"><div class="tx-name">${tx.name}</div><div class="tx-date">${tx.date}</div></div><div class="tx-amount ${tx.type}">${tx.type==='earn'?'+':'-'}${fmt(tx.amount)}</div></div>`;
+    }).join('');
+  }
+}
+
+function today() { return new Date().toLocaleDateString(); }
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+initShop();
+renderQuests();
+updateUI();
+</script>
+</body>
+</html>
